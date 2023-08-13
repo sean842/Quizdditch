@@ -1,0 +1,336 @@
+﻿@page "/NewGames"
+@using TriangleProject.Shared.Models.Game
+@inject HttpClient Http
+@inject NavigationManager Nav
+
+<div class="conteiner">
+    <div class="titel">
+          <div class="picStart">  
+              <h2>המשחקים שלי</h2>
+              <img src="pic/תמונות מעודכנות/לוח קטן.png"style=" width: 200px; position: fixed; left: 650px; top:45px;" />
+          </div>
+    </div>
+
+    <div>
+		<h3 class="GameName">שם משחק</h3>
+        <span class=" @inputClass BeSmall" >@newGameName.Length/20</span>
+    </div>
+	<input type="text" @bind=newGameName class="default-input" @bind:event="oninput" @onkeyup="countChars" maxlength="20" />
+    @if (1 < newGameName.Length && newGameName.Length < 20){
+        <button value="יצירת משחק" id="makeGame" @onclick="getNewGame">
+            <img src="pic/תמונות מעודכנות/יצירת משחק קטן.png"  style=" width: 145px; height: 31px;" />
+        </button>
+    }
+    else{  @*<input type="button" value="יצירת משחק"  disabled />*@ 
+        <button value="יצירת משחק" id="makeGame" disabled>
+            <img src="pic/תמונות מעודכנות/יצירת משחק קטן.png" style=" width: 145px; height: 31px;" />
+        </button>
+    }
+
+    <div class="gameTable">
+        @if (user != null)
+        {
+            <p>The Games of: @user.FirstName</p>
+            <div class="Qtable">
+                <div class="tableWrapper"> 
+                    <table border=0>
+                        <tr>
+                            <th> <span> שם המשחק </span> </th>
+                            <th> <span> קוד המשחק </span> </th>
+                            <th>
+                                <div>
+                                    <span> מספר שאלות </span>
+
+                                 <Tooltip Title="מספר השאלות צריך להיות זוגי ו10 שאלות ומעלה" Placement="TooltipPlacement.Left">
+
+                                        <img class="Tooltip1" src="pic/new folder/tooltip.png"  />
+
+                                    </Tooltip>
+                                </div>
+                            </th>
+
+                            <th>
+                                <div>
+                                    <span> עריכה </span>
+
+                                    <Tooltip Title="מעבר לעמוד עריכת המשחק" Placement="TooltipPlacement.Left">
+
+                                        <img class="Tooltip1" src="pic/new folder/tooltip.png" />
+                                    </Tooltip>
+
+                                </div>
+                            </th>
+
+                            <th> <span> מחיקה </span> </th>
+
+                            <th>
+                                <div>
+                                    <span> פרסום </span>
+
+                                    <Tooltip Title="פרסום משחק יהפוך אותו לזמין ויאפשר לשחק בו" Placement="TooltipPlacement.Left">
+
+                                        <img class="Tooltip1" src="pic/new folder/tooltip.png"  />
+                                    </Tooltip
+
+                                </div>
+                            </th>
+
+
+                        </tr>
+
+                        @if(user.Games.Count > 0){
+
+            
+                            @foreach (Game game in user.Games)
+                            {
+                                <tr>
+                                    <td>@game.GameName</td>
+                                    <td>@game.GameCode</td>
+                                    <td>@game.Questions.Count</td>
+                                    <td>
+@*                                      <input type="button" value="Move to2" @onclick="( ()=> Navigate2(game.ID) )" />
+*@                                      <button value="Move to2" @onclick="( ()=> Navigate2(game.ID) )"><img style="width:15px;" src="pic/תמונות מעודכנות/edit.png קטן.png" /> </button>
+                                    </td>
+                                    @*<td> 
+                                      <input type="button" value="מחק" @onclick="@(()=> deleteGame(@game))" />
+                                      <button value="מחק" @onclick="@(()=> deleteGame(@game))"><img style="width:15px;" src="pic/תמונות מעודכנות/tresh1 קטן.png" /> </button>
+                                    </td>*@
+                                    <td>
+                                       <button value="מחק" @onclick="() => ShowDeleteConfirmation(game)">
+                                           <img style="width:15px;" src="pic/תמונות מעודכנות/tresh1 קטן.png" />
+                                       </button>
+                                    </td>
+                                    @if (showDeleteConfirmation)
+                                    {
+                                            <Popup title="מחיקת משחק" actBtn="מחיקת משחק" noActBtn="חזרה" closePop="deleteGame">
+                                          	    <p>המשחק וכל התוכן שבו ימחק ולא יהיה ניתן לשחזרו</p>
+                                            </Popup>
+                                    }
+
+
+                                    <td>
+                                        @if (game.CanPublish == false)
+                                        {
+                                        <input type="checkbox" disabled />
+                                        }
+                                        else
+                                        {
+                                            <input type="checkbox" checked=@game.IsPublish @onchange="@(() => changePublish(game))" />
+                                        }
+
+                                    </td>
+
+                                </tr>
+                            }
+                
+
+                        }
+                        else{
+                            <td> טבלת השאלות ריקה </td>
+                        }
+                    </table>
+                </div>
+            </div>
+        
+        }
+
+    </div>
+    @if (msg != "")
+    {
+        <p>@msg</p>
+@*        <input type="button" value="reload" @onclick=Navigate />
+*@    }
+
+</div>
+
+<div> </div>
+
+@code {
+
+    [CascadingParameter]
+    public int UserId { get; set; }
+
+    [CascadingParameter]
+    public int GameID { get; set; }// to store the ID of the new Game and pass it to the next page.
+
+    UserWithGames user;
+
+
+    string msg = "";
+
+    string newGameName = "";
+    string inputClass = "";
+
+    bool showDeleteConfirmation = false;
+    Game gameToDelete;
+
+
+    void countChars()
+    {
+        int length = newGameName.Length;
+        switch (length)
+        {
+            case > 1 and <= 10:
+                inputClass = "good-input";
+                break;
+            case > 10 and <= 19:
+                inputClass = "warnning-input";
+                break;
+            case >= 20:
+                inputClass = "danger-input";
+                break;
+            default:
+                inputClass = "danger-input";
+                break;
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var userRes = await Http.GetAsync("api/Games/" + UserId + "/GetGame");
+        if (userRes.IsSuccessStatusCode == true)
+        {
+            user = userRes.Content.ReadFromJsonAsync<UserWithGames>().Result;
+            Console.WriteLine(user);
+        }
+        else
+        {
+            string error = userRes.Content.ReadAsStringAsync().Result;
+            switch (error)
+            {
+                case "No Session":
+                    msg = "Session error, please reload page";
+                    break;
+                case "User Not Logged In":
+                    msg = "You are not logged in, please reload page to try again";
+                    break;
+                case "User Not Found":
+                    msg = "the user details not found, please reload page to try again";
+                    break;
+            }
+
+        }
+
+    }
+
+    async Task changePublish(Game game)
+    {
+        PublishGame gameToSend = new PublishGame();
+        gameToSend.ID = game.ID;
+        gameToSend.IsPublish = !game.IsPublish;
+        var userRes = await Http.PostAsJsonAsync("api/Games/" + UserId + "/publishGame", gameToSend);
+        if (userRes.IsSuccessStatusCode == true)
+        {
+            Game updatedGame = userRes.Content.ReadFromJsonAsync<Game>().Result;
+            int index = user.Games.IndexOf(game);
+            user.Games[index].IsPublish = updatedGame.IsPublish;
+            //if (gameToSend.IsPublish != updatedGame.IsPublish)
+            //{
+            //    msg = "Can't publish the game";
+            //}
+
+        }
+        else
+        {
+            string error = userRes.Content.ReadAsStringAsync().Result;
+
+            switch (error)
+            {
+                case "No Session":
+                    msg = "Session error, please reload page";
+                    break;
+                case "User Not Logged In":
+                    msg = "You are not logged in, please reload page to try again";
+                    break;
+                case "It's Not Your Game":
+                    msg = "You tried to update a game that is not associated with your user ";
+                    break;
+                case "Publish Update Failed":
+                    msg = "Publish update Failed, please reload page to try again";
+                    break;
+
+            }
+
+        }
+
+
+
+    }
+
+    async Task getNewGame()//הוספת משחק חדש
+    {
+        
+
+            var userRes = await Http.GetAsync("api/Games/" + UserId + "/addgame/" + newGameName);
+            if (userRes.IsSuccessStatusCode == true)
+            {
+                Game newGameName = userRes.Content.ReadFromJsonAsync<Game>().Result;
+                user.Games.Add(newGameName);
+                GameID = newGameName.ID;
+                Navigate2(GameID);
+
+            }
+            else
+            {
+                string error = userRes.Content.ReadAsStringAsync().Result;
+                switch (error)
+                {
+                    case "No Session":
+                        msg = "Session error, please reload page";
+                        break;
+                    case "User Not Logged In":
+                        msg = "You are not logged in, please reload page to try again";
+                        break;
+                    case "User Not Found":
+                        msg = "the user details not found, please reload page to try again";
+                        break;
+                    case "Game Not Created":
+                        msg = "the game not created, please reload page to try again";
+                        break;
+                    case "Game Code Not Created":
+                        msg = "the game code not created, please reload page to try again";
+                        break;
+                }
+
+            }
+       
+    }
+
+    //async Task deleteGame(Game Game)
+    //{
+    //    var deletGame = await Http.DeleteAsync("api/Games/" + UserId + "/delete/" + Game.ID);
+    //    if (deletGame.IsSuccessStatusCode == true)
+    //    {
+    //        user.Games.Remove(Game);
+    //    }
+
+    //}
+
+
+
+    void Navigate2(int Gameid)
+    {
+        GameID = Gameid;
+        Nav.NavigateTo("./EditGame/" + GameID);
+    }
+
+    void ShowDeleteConfirmation(Game game)
+    {
+        gameToDelete = game;
+        showDeleteConfirmation = true;
+    }
+    async Task deleteGame(bool deleteOrNo)
+    {
+        if(deleteOrNo == true){
+            var deletGame = await Http.DeleteAsync("api/Games/" + UserId + "/delete/" + gameToDelete.ID);
+            if (deletGame.IsSuccessStatusCode == true)
+            {
+                user.Games.Remove(gameToDelete);
+                gameToDelete = new Game();
+            }
+
+        }
+        showDeleteConfirmation = false;
+    }
+
+}

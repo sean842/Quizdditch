@@ -1,0 +1,33 @@
+﻿<div class="popup-overlay">
+    <div class="popup-container">
+        <button class="close-button" @onclick="HideAboutPopup">X</button>
+        <h3>אודות</h3>
+        <div class="popup-content">
+            <div class="white-rectangle">
+                <!-- Add your content inside the white rectangle -->
+                <p>  <b>אפיון ופיתוח:</b>   שון בלייר וקרן יצחקי</p>
+                <p>אפיין ופותח במסגרת הקורסים:</p>
+                <p>סביבות לימוד אינטראקטיביות, תכנות 2, תכנות אינטראקציה ואנימציה 2.</p>
+				<center>
+					<a href="https://www.hit.ac.il/">
+						<img src="/pic/תמונות מעודכנות/hit.png" />
+					</a>
+				</center>
+			</div>
+        </div>
+    </div>
+</div>
+
+@code {
+    private bool showAboutPopup;
+
+    private void ShowAboutPopup()
+    {
+        showAboutPopup = true;
+    }
+
+    private void HideAboutPopup()
+    {
+        showAboutPopup = false;
+    }
+}

@@ -1,0 +1,37 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+<!--    <Nullable>enable</Nullable>-->
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(RunConfiguration)' == 'TriangleProject' ">
+    <ExternalConsole>true</ExternalConsole>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Remove="wwwroot\uploadedFiles\**" />
+    <Content Remove="wwwroot\uploadedFiles\**" />
+    <EmbeddedResource Remove="wwwroot\uploadedFiles\**" />
+    <None Remove="wwwroot\uploadedFiles\**" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.13" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.13" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Shared\TriangleProject.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="PortelemFiles\" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="PortelemFiles\" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Components\Popup.razor" />
+  </ItemGroup>
+</Project>

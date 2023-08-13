@@ -1,0 +1,44 @@
+﻿@using TriangleProject.Shared.Models.Game
+
+<div class="popup-overlay">
+	
+		<div class="popup-container">
+
+			<h1> @title </h1>
+
+			<p id="txt">@ChildContent</p>
+
+			<input type="button" id="yesB" value="@actBtn" @onclick="action" />
+		<input type="button" id="noB" value="@noActBtn" @onclick="noAction" />
+		</div>
+	<div class="blok"></div>
+</div>
+
+
+@code {
+
+	[Parameter]
+	public string title { get; set; }
+	[Parameter]
+	public string actBtn { get; set; }
+	[Parameter]
+	public string noActBtn { get; set; }
+	[Parameter]
+	public RenderFragment ChildContent { get; set; }
+
+	[Parameter]
+	public EventCallback<bool> closePop { get; set; }
+
+	void action()
+	{
+		closePop.InvokeAsync(true);
+	}
+
+	void noAction()
+	{
+		closePop.InvokeAsync(false);
+	}
+
+
+}
+

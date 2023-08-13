@@ -1,0 +1,41 @@
+﻿@using TriangleProject.Client.Components
+<nav>
+    <div class="Logo">
+		<img src="/pic/תמונות מעודכנות/smalllogo.png" />
+    </div>
+	<div>
+        <NavLink href="" Match="NavLinkMatch.All">
+            משחק
+        </NavLink>
+    </div>
+    <div>
+        <NavLink href="NewGames">
+            עורך
+        </NavLink>
+    </div>
+    <div>
+        <input class="btn-nav" type="button" value="אודות" @onclick="ShowAboutPopup"  />
+    </div>
+</nav>
+
+@if (showAboutPopup)
+{
+    <div class="popup-overlay" @onclick="HideAboutPopup">
+		<AboutPopup />
+    </div>
+}
+@code {
+
+    private bool showAboutPopup;
+
+    private void ShowAboutPopup()
+    {
+        showAboutPopup = true;
+    }
+
+    private void HideAboutPopup()
+    {
+        showAboutPopup = false;
+    }
+
+}

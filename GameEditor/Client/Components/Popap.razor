@@ -1,0 +1,28 @@
+﻿<h3>Popap</h3>
+
+
+<p>
+	למחוק את המשחק?
+</p>
+
+<input type="button" value="yes" @onclick="changeTo"/>
+<input type="button" value="no" />
+@code {
+
+	//[Parameter]
+	//public string gameName { get; set; }
+	[Parameter]
+	public bool show { get; set; }
+
+
+	[Parameter]
+	public EventCallback<bool> closePop { get; set; }
+
+	void changeTo()
+	{
+		show = false;
+		closePop.InvokeAsync(show);
+	}
+
+
+}

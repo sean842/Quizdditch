@@ -1,0 +1,66 @@
+﻿nav {
+    direction: rtl;
+    width: 100%;
+    background-color: #D59D6B;
+    font-size: 0;
+    text-align: left;
+    font-weight:bold;
+    text-decoration:none;
+}
+
+    nav > div {
+        display: inline-block;
+        font-size: 12pt;
+
+    }
+
+.btn-nav {
+    background: none;
+    border: none;
+    border-radius: 0;
+    font-weight: bold;
+}
+
+::deep a, .btn-nav {
+    color: black;
+    text-align: center;
+    display: block;
+    padding: 10px;
+    text-decoration:none;
+}
+
+    ::deep a.active {
+        background-color: rgba(255,255,255,0.25);
+        color: black;
+        text-decoration: underline;
+    }
+
+    ::deep a:hover, .btn-nav:hover {
+        font-weight: bold;
+        background-color: lightblue;
+    }
+
+.Logo img{
+    height:80%;
+    width:80%;
+}
+
+.Logo{
+    float:right;
+    margin-right: 15px;
+    margin-top:5px;
+    
+}
+
+.popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 9999;
+}

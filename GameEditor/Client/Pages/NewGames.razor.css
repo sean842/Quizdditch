@@ -1,0 +1,183 @@
+﻿
+
+@font-face {
+    font-family: Alef;
+    src: url('fonts/alef-regular.ttf') format('truetype');
+}
+body {
+    font-family: Alef;
+}
+.titel h2 {
+    position: relative;
+    top: 72px;
+    right: 15px;
+    /*    left:15px;
+*/ 
+    font-family: Alef;
+    text-align: center;
+    font-weight: bold;
+    font-size: 28px;
+    z-index: 30;
+}
+nav[b-nw4eon72wh] {
+    width: 100%;
+    background-color: #e4c4a5;
+    font-size: 0;
+    text-align: left;
+    background-image: url('file:///C:\קרן\טלמ\שנה ב\סימטר ב\עבודה משולשת\תמונות\תמונות מעודכנות\לוגו.png');
+    background-repeat: no-repeat;
+}
+.beck {
+    background-color:brown;
+    width: 100%;
+    height: 100%;
+}
+.conteiner {
+    width: 100%;
+    height: 100%;
+    background-image: url('img/רקע.png');
+}
+
+.popupClass {
+    height: 350px;
+    width: 450px;
+    background-color: antiquewhite;
+    border: black;
+    position: fixed;
+    text-align: center;
+    margin-bottom: 50px;
+    margin-right: 474px;
+    padding-top: 100px;
+    opacity: 100% !important;
+    z-index: 99;
+    background-image: url('img/board.png');
+}
+
+.modal-container {
+    position: fixed;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    z-index: 1000;
+    background-color: black;
+    display: flex;
+    opacity: 50%;
+    z-index: 1;
+}
+
+.GameName {
+    display: inline-block;
+    margin-left: 10px;
+    font-size: 25px;
+}
+
+.BeSmall{
+    font-size:10px;
+}
+
+.Tooltip1 {
+    position: absolute;
+    bottom: 14px;
+    z-index: 2;
+    width: 10px;
+}
+/*________*/
+
+tr {
+   /* text-align: center;*/
+    height: 43px;
+    border-bottom: 2px solid black;
+    padding-bottom: 5px;
+    width: 90%;
+}
+
+tr:hover {
+    background-color: #D59D6B;
+}
+
+th, td {
+    padding: 1px;
+    border-bottom: 1px solid #ddd;
+    font-size:15px;
+}
+
+table {
+    font-family: Alef;
+    border-collapse: collapse;
+    min-width: 1050px;
+
+    /*    overflow-y: scroll;
+      table-layout: fixed;   
+        width: 1200px;
+
+*/
+}
+
+th {
+    height: 20px;
+    border-bottom: 1px solid #ddd;
+    font-weight: bold;
+    font-size: 15px;
+    padding: 1px;
+    position: sticky;
+    z-index: 10;
+    top: 0;
+    background-color: #D59D6B;
+/*    border-bottom: 1px solid #ddd;
+*/
+
+}
+.Qtable { /*עוטף את הטבלה*/
+    background-color: aliceblue;
+    opacity: 0.9;
+    /*flex-direction: column;*/
+    border-radius: 25px;
+    border: solid;
+    border-block-color: black;
+    position: relative;
+    overflow-y: scroll;
+    position: relative;
+    width: 1050px;
+    margin-left: auto;
+    margin-right: auto;
+    margin-top:40px;
+    display: flex;
+    justify-content: center;
+    overflow:hidden;   
+    height: 470px;
+
+}
+
+.tableWrapper {
+    /*    height: 486px;
+*/
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+
+button {
+    border: transparent;
+    background: transparent;
+}
+
+#makeGame {
+    z-index: 31;
+    position: relative;
+}
+
+#makeGame:disabled {
+    opacity: 0.5;
+}
+#nameMakeGame h4 {
+    position: absolute;
+    right: 382px;
+    bottom: 547px;
+    z-index: 2;
+    font-family: Alef;
+    font-weight: bold;
+}
+
+
+/*________*/

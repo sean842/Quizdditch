@@ -1,0 +1,926 @@
+﻿@page "/EditGame/{GameID:int}"
+@inject NavigationManager Nav
+@inject HttpClient Http
+@using TriangleProject.Shared.Models.Game
+@using TriangleProject.Shared.Models.Questions
+@using TriangleProject.Shared.Models.Answers
+
+<div class="allPage">
+
+	@if (myGame != null)
+	{
+		<h2> עריכת משחק  </h2>
+
+
+		<div class="part1">
+			<h3> הגדרות כלליות  </h3>
+			<br>
+			<div class="section1 right">
+				<div class="cel">
+					<h4> שם המשחק: </h4>
+					<span class=" @inputClass BeSmall">@gameName.Length/20</span>
+				</div>
+				<input type="text" @bind="gameName" class="default-input" @bind:event="oninput" @onkeyup="countChars" maxlength="20" />
+			</div>
+
+			<div class="section1 left">
+				<h4 id="time"> זמן לשאלה:</h4>
+
+				<div class="btn-group choices" role="group">
+					<input type="radio" name="timer" id="20" value="20" @onclick="( ()=> SetTimer(20)  )" checked="@(myGame.TimeToAnswer == 20)">
+					<label class="radio" for="20"> 20 </label>
+					<input type="radio" name="timer" id="30" value="30" @onclick="( ()=> SetTimer(30)  )" checked="@(myGame.TimeToAnswer == 30)">
+					<label class="radio" for="30"> 30 </label>
+					<input type="radio" name="timer" id="40" value="40" @onclick="( ()=> SetTimer(40)  )" checked="@(myGame.TimeToAnswer == 40)">
+					<label class="radio" for="40"> 40 </label>
+					<br><br><br><br>
+					<input type="radio" name="timer" id="50" value="50" @onclick="( ()=> SetTimer(50)  )" checked="@(myGame.TimeToAnswer == 50)">
+					<label class="radio2" for="50"> 50 </label>
+
+					<input type="radio" name="timer" id="0" value="0" @onclick="( ()=> SetTimer(0)  )" checked="@(myGame.TimeToAnswer == 0)">
+					<label class="radio2" for="0"> ללא הגבלה </label>
+				</div>
+			</div>
+		</div>
+
+
+
+		<div class="section2">
+			<h3 class="Qtitle">מאגר שאלות</h3><br>
+
+			<div class="Tinfo">
+				<span class="circle @circleColor1">
+					<span class="symbol">@circleContent1</span>
+				</span>
+				<span class="criteria">מינימום 10 שאלות</span>
+				<span class="circle @circleColor2">
+					<span class="symbol">@circleContent2</span>
+				</span>
+				<span class="criteria">מספר שאלות זוגי</span>
+				<span class="text">מספר שאלות: @questionList.Count</span>
+			</div>
+
+			<br>
+			<div class="borderT">
+				<table class="fixed_header">
+					<thead>
+						<tr>
+							<th>שאלה</th>
+							<th>עריכה</th>
+							<th>מחיקה</th>
+						</tr>
+					</thead>
+					<tbody>
+						@foreach (GetQuestionClass question in questionList)
+						{
+							<tr>
+								<td> @question.content </td>
+								<td><button id="edit" @onclick="( ()=> EditQuestion(question)  )"> <img src="pic/תמונות מעודכנות/edit.png קטן.png" /> </button></td>
+								@*<td><button id="delete" @onclick="@( ()=> deleteQuestion(question)  )"><img src="pic/תמונות מעודכנות/tresh1 קטן.png" /> </button></td>*@
+								<td>
+									<button id="delete" @onclick="@( ()=> ShowPopup(question)  )">
+										<img src="pic/תמונות מעודכנות/tresh1 קטן.png" /> </button>
+								</td>
+
+								@if (showMyPopup == true){
+									<Popup title="מחיקת שאלה" actBtn="למחוק" noActBtn="לא למחוק" closePop="deleteQuestion">
+										<p>  השאלה וכל התוכן שבה ימחקו,האם את/ה בטוח/ה? </p>
+									</Popup>
+								}
+
+							</tr>
+						}
+					</tbody>
+
+				</table>
+			</div>
+		</div>
+
+
+		<div class="section3">
+			<h3 class="QandAn">יצירת שאלה</h3>
+			@if (singleQuestion != null)
+			{
+				@if (questionContent != null)
+				{
+					<div class="question-container">
+						<div class="label-container">
+							<label class="QandA" style="font-size: 25px;font-weight: bold;">שאלה:</label>
+							<span class="@QinputClass counter ">@questionContent.Length/30</span>
+						</div>
+						<div class="input-container">
+							<input type="text" @bind="@singleQuestion.content" @bind:event="oninput" @onkeyup="Valid" maxlength="30" />
+						</div>
+					</div>
+
+				}
+
+
+			}
+
+			@if (answerList.Count >= 1)
+			{
+				<div>
+					@if (myFileImageList[0] == "")
+					{
+						<label class="QandA">תשובה נכונה:</label>
+						<span class=" @countersClass[0] counter">@counters[0].Length/15</span>
+						<br />
+						<input type="text" id="treu" @bind="@answerList[0].content" @bind:event="oninput" @onkeyup="Valid" maxlength="15" />
+
+						<label for="myFileImageList[0]">
+							<img src="pic/תמונות מעודכנות/תמונה קטן.png" style=" width: 33px;" />
+						</label>
+						<InputFile id="myFileImageList[0]" OnChange="( (e)=> UploadFile(e, 0))" hidden />
+						<button value="איפוס" @onclick="( ()=> Reset(0) )"> <img src="pic/תמונות מעודכנות/איפוס קטן.png" style=" width: 31px;" /></button>
+
+					}
+
+					@if (myFileImageList[0] != "")
+					{
+						<label class="QandA">תשובה נכונה:</label>
+						<br />
+						<input type="text" @bind="@answerList[0].content" @bind:event="oninput" @onkeyup="Valid" maxlength="15" disabled />
+						
+						<img src="@myFileImageList[0]" style="width:50px; height:30px;" />
+						<button value="איפוס" @onclick="( ()=> Reset(0) )"> <img src="pic/תמונות מעודכנות/איפוס קטן.png" style=" width: 31px;" /></button>
+
+					}
+					<br />
+				</div>
+
+			}
+			@if (answerList.Count >= 2)
+			{
+				<div>
+					@if (myFileImageList[1] == "")
+					{
+						<label class="QandA">תשובה 2:</label>
+						<span class="@countersClass[1] counter">@counters[1].Length/15</span>
+						<br />
+						<input type="text" @bind="@answerList[1].content" @bind:event="oninput" @onkeyup="Valid" maxlength="15" />
+
+						<label for="myFileImageList[1]"> <img src="pic/תמונות מעודכנות/תמונה קטן.png" style=" width: 33px;" /> </label>
+						<InputFile id="myFileImageList[1]" OnChange="( (e)=> UploadFile(e, 1))" hidden />
+						<button value="איפוס" @onclick="( ()=> Reset(1) )"> <img src="pic/תמונות מעודכנות/איפוס קטן.png" style=" width: 31px;" /></button>
+
+					}
+					@if (myFileImageList[1] != "")
+					{
+						<label class="QandA">תשובה 2:</label>
+						<br />
+						<input type="text" @bind="@answerList[1].content" @bind:event="oninput" @onkeyup="Valid" maxlength="15" disabled />
+						
+						<img src="@myFileImageList[1]" style="width:50px; height:50px;" />
+						<button value="איפוס" @onclick="( ()=> Reset(1) )"> <img src="pic/תמונות מעודכנות/איפוס קטן.png" style=" width: 31px;" /></button>
+
+					}
+					<br>
+
+				</div>
+
+			}
+
+			@if (answerList.Count >= 3)
+			{
+				<div>
+					@if (myFileImageList[2] == "")
+					{
+						<label class="QandA">תשובה 3:</label>
+						<span class="@countersClass[2] counter">@counters[2].Length/15</span>
+						<br />
+						<input type="text" @bind="@answerList[2].content" @bind:event="oninput" @onkeyup="Valid" maxlength="15" />
+
+						<label for="myFileImageList[2]"> <img src="pic/תמונות מעודכנות/תמונה קטן.png" style=" width: 33px;" /></label>
+						<InputFile id="myFileImageList[2]" OnChange="( (e)=> UploadFile(e, 2))" hidden />
+
+						<button value="מחיקת תשובה" @onclick="( ()=>RemoveAnswer(2)  )"><img src="pic/תמונות מעודכנות/tresh1 קטן.png" /> </button>
+						<button value="איפוס" @onclick="( ()=> Reset(2) )"> <img src="pic/תמונות מעודכנות/איפוס קטן.png" style=" width: 31px;" /></button>
+					}
+					@if (myFileImageList[2] != "")
+					{
+						<label class="QandA">תשובה 3:</label>
+						<br />
+						<input type="text" @bind="@answerList[2].content" @bind:event="oninput" @onkeyup="Valid" maxlength="15" disabled />
+						
+						<img src="@myFileImageList[2]" style="width:50px; height:50px;" />
+						<button value="מחיקת תשובה" @onclick="( ()=>RemoveAnswer(2)  )"><img src="pic/תמונות מעודכנות/tresh1 קטן.png" /> </button>
+						<button value="איפוס" @onclick="( ()=> Reset(2) )"> <img src="pic/תמונות מעודכנות/איפוס קטן.png" style=" width: 31px;" /></button>
+					}
+					<br>
+
+
+				</div>
+			}
+
+			@if (answerList.Count >= 4)
+			{
+				<div>
+					@if (myFileImageList[3] == "")
+					{
+						<label class="QandA">תשובה 4:</label>
+						<span class="@countersClass[3] counter">@counters[3].Length/15</span>
+						<br />
+						<input type="text" @bind="@answerList[3].content" @bind:event="oninput" @onkeyup="Valid" maxlength="15" />
+
+						<label for="myFileImageList[3]"> <img src="pic/תמונות מעודכנות/תמונה קטן.png" style=" width: 33px;" /></label>
+						<InputFile id="myFileImageList[3]" OnChange="( (e)=> UploadFile(e, 3))" hidden />
+
+						<button value="מחיקת תשובה" @onclick="( ()=>RemoveAnswer(3)  )"><img src="pic/תמונות מעודכנות/tresh1 קטן.png" /> </button>
+						<button value="איפוס" @onclick="( ()=> Reset(3) )"> <img src="pic/תמונות מעודכנות/איפוס קטן.png" style=" width: 31px;" /></button>
+
+					}
+					@if (myFileImageList[3] != "")
+					{
+						<label class="QandA">תשובה 4:</label>
+
+						<br />
+						<input type="text" @bind="@answerList[3].content" @bind:event="oninput" @onkeyup="Valid" maxlength="15" disabled />
+						<img src="@myFileImageList[3]" style="width:50px; height:50px;" />
+						<button value="מחיקת תשובה" @onclick="( ()=>RemoveAnswer(3)  )"><img src="pic/תמונות מעודכנות/tresh1 קטן.png" /> </button>
+						<button value="איפוס" @onclick="( ()=> Reset(3) )"> <img src="pic/תמונות מעודכנות/איפוס קטן.png" style=" width: 31px;" /></button>
+
+					}
+					<br>
+
+
+				</div>
+			}
+
+			@if (answerList.Count >= 5)
+			{
+				<div>
+					@if (myFileImageList[4] == "")
+					{
+						<label class="QandA">תשובה 5:</label>
+						<span class="@countersClass[4] counter">@counters[4].Length/15</span>
+						<br />
+						<input type="text" @bind="@answerList[4].content" @bind:event="oninput" @onkeyup="Valid" maxlength="15" />
+
+						<label for="myFileImageList[4]"> <img src="pic/תמונות מעודכנות/תמונה קטן.png" style=" width: 33px;" /> </label>
+						<InputFile id="myFileImageList[4]" OnChange="( (e)=> UploadFile(e, 4))" hidden />
+
+						<button value="מחיקת תשובה" @onclick="( ()=>RemoveAnswer(4)  )"><img src="pic/תמונות מעודכנות/tresh1 קטן.png" /> </button>
+						<button value="איפוס" @onclick="( ()=> Reset(4) )"> <img src="pic/תמונות מעודכנות/איפוס קטן.png" style=" width: 31px;" /></button>
+
+					}
+					@if (myFileImageList[4] != "")
+					{
+						<label class="QandA">תשובה 5:</label>
+						<br />
+						<input type="text" @bind="@answerList[4].content" @bind:event="oninput" @onkeyup="Valid" maxlength="15" disabled />
+						
+						<img src="@myFileImageList[4]" style="width:50px; height:50px;" />
+						<button value="מחיקת תשובה" @onclick="( ()=>RemoveAnswer(4)  )"><img src="pic/תמונות מעודכנות/tresh1 קטן.png" /> </button>
+						<button value="איפוס" @onclick="( ()=> Reset(4) )"> <img src="pic/תמונות מעודכנות/איפוס קטן.png" style=" width: 31px;" /></button>
+
+					}
+					<br>
+
+
+				</div>
+			}
+
+			@if (answerList.Count >= 6)
+			{
+				<div>
+					@if (myFileImageList[5] == "")
+					{
+						<label class="QandA">תשובה 6:</label>
+						<span class="@countersClass[5] counter">@counters[5].Length/15</span>
+						<br />
+						<input type="text" @bind="@answerList[5].content" @bind:event="oninput" @onkeyup="Valid" maxlength="15" />
+
+						<label for="myFileImageList[5]"><img src="pic/תמונות מעודכנות/תמונה קטן.png" style=" width: 33px;" />  </label>
+						<InputFile id="myFileImageList[5]" OnChange="( (e)=> UploadFile(e, 5))" hidden />
+
+						<button value="מחיקת תשובה" @onclick="( ()=>RemoveAnswer(5)  )"><img src="pic/תמונות מעודכנות/tresh1 קטן.png" /> </button>
+						@*<input type="button" value="איפוס" @onclick="( ()=> Reset(5) )">*@
+						<button value="איפוס" @onclick="( ()=> Reset(5) )"> <img src="pic/תמונות מעודכנות/איפוס קטן.png" style=" width: 31px;" /></button>
+
+					}
+					@if (myFileImageList[5] != "")
+					{
+						<label class="QandA">תשובה 6:</label>
+						<br />
+						<input type="text" @bind="@answerList[5].content" @bind:event="oninput" @onkeyup="Valid" maxlength="15" disabled />
+
+						<img src="@myFileImageList[5]" style="width:50px; height:50px;" />
+						<button value="מחיקת תשובה" @onclick="( ()=>RemoveAnswer(5)  )"><img src="pic/תמונות מעודכנות/tresh1 קטן.png" /> </button>
+						@*<input type="button" value="איפוס" @onclick="( ()=> Reset(5) )">*@
+						@*<button value="איפוס" @onclick="( ()=> Reset(5) )"> <img src="/pic/תמונות מעודכנות/איפוס קטן.png" /></button>*@
+						<button value="איפוס" @onclick="( ()=> Reset(5) )"> <img src="pic/תמונות מעודכנות/איפוס קטן.png" style=" width: 31px;" /></button>
+					}
+					<br>
+
+
+				</div>
+			}
+
+			@if (answerList.Count < 6)
+			{
+				@*<input type="button" value="הוספת תשובה" @onclick="AddAnswer">*@
+				<button value="הוספת תשובה" id="plosA" @onclick="AddAnswer"> <img src="pic/תמונות מעודכנות/addans.png" /> </button>
+			}
+			else
+			{
+				@*<input type="button" value="הוספת תשובה" @onclick="AddAnswer" disabled>*@
+				<button value="הוספת תשובה" id="plosA" @onclick="AddAnswer" disabled> <img src="pic/תמונות מעודכנות/addans.png" />  </button>
+
+			}
+
+			@*<input type="button" value="הוספת שאלה" @onclick="AddQuestion" disabled="@BTNDisable">*@
+			<button value="שמירת שאלה" id="plosQ" @onclick="AddQuestion" disabled="@BTNDisable"> <img src="/pic/תמונות מעודכנות/saveq.png" /> </button>
+
+			@if (msg != " ")
+			{
+				@msg
+				;
+			}
+
+		</div>
+
+		@*<button value="שמירת משחק" id="saveGame" @onclick="SaveGame" disabled="@BtnSaveGameDisable">
+			<img src="pic/תמונות מעודכנות/שמירת משחק קטן.png" style="width:207px; left: -24px; position: relative; top:7px; " />
+		</button>*@
+
+		<button value="שמירת משחק" id="saveGame" @onclick="SaveGame" disabled="@BtnSaveGameDisable">
+			<img src="pic/תמונות מעודכנות/שמירת משחק קטן.png" style="width:207px; left: -24px; position: relative; top:7px; " />
+		</button>
+		@if (showSavePopup1 == true)
+		{
+			<Popup title="המשחק נשמר" actBtn="חזרה לעמוד המשחקים" noActBtn="המשך עריכה" closePop="Navigate2">
+				<p>  המשחק נשמר, האם תרצה להמשיך לערוך או לחזור לעמוד המשחקים שלי? </p>
+			</Popup>
+		}
+
+		@*<button value="חזרה למשחקים שלי" id="beck" @onclick="Navigate2">
+			<img src="pic/תמונות מעודכנות/חזרה למשחקים שלי קטן.png" style="width:180px; left: -34px;
+    position: relative; top:7px; " />
+		</button>*@
+		<button value="חזרה למשחקים שלי" id="beck" @onclick="BeckPopup">
+			<img src="pic/תמונות מעודכנות/חזרה למשחקים שלי קטן.png" style="width:207px; left: -18px; position: relative; top:5px; " />
+		</button>
+
+		@if (showBeckPopup == true)
+		{
+			<Popup title="חזרה לעמוד המשחקים שלי" actBtn="חזרה לעמוד המשחקים" noActBtn="המשך עריכה" closePop="Navigate2">
+				<p>  האם ברצונך לחזור לעמוד המשחקים שלי מבלי לשמור את המשחק/ את השינויים? </p>
+			</Popup>
+		}
+
+	}
+
+</div>
+
+@code {
+
+	[CascadingParameter]
+	public int UserId { get; set; }
+	[Parameter]
+	public int GameID { get; set; }
+
+	string msg = ""; // to show eror
+	Game myGame = new Game();// object with the game.
+	List<GetQuestionClass> questionList = new List<GetQuestionClass>();// list of Q to work with.
+	GetQuestionClass singleQuestion = new GetQuestionClass();
+	List<GetAnswerClass> answerList = new List<GetAnswerClass>(2);
+
+	bool editState = false;
+	string inputClass = "";// class for game name.
+	string QinputClass = "danger-input";// class for question content
+	string gameName = "";// game name input text.
+	string questionContent = "";// question content input text.
+	string currectAns = "";// currect answer.
+
+	List<string> myFileImageList = new List<string>();// list for answers files images.
+	long maxFileSize = 4194304;
+	List<string> DeletedImages = new List<string>();
+	List<string> counters = Enumerable.Repeat("", 6).ToList(); //list for the answers text counters.
+	List<string> countersClass = Enumerable.Repeat("", 6).ToList(); //list for the answers text counters.
+
+	bool BTNDisable = true;// for save question.
+	bool BtnSaveGameDisable = false;// for save game button.
+
+	// for the question table, set the x or v with color int the criteria's.
+	string circleColor1 = "red";
+	string circleContent1 = "x";
+	string circleColor2 = "red";
+	string circleContent2 = "x";
+
+	GetQuestionClass questionToDelete = new GetQuestionClass();
+	bool showMyPopup = false;// show/hide the delete question popup.
+	bool showBeckPopup = false;// sho/hide the beck to my games popup.
+	bool showSavePopup1 = false; // sho/hide the save game popup
+
+
+
+	protected override async Task OnInitializedAsync()
+	{
+		var userRes = await Http.GetAsync("api/Games/" + UserId + "/GetOneGame/" + GameID);
+		if (userRes.IsSuccessStatusCode == true)
+		{
+			myGame = userRes.Content.ReadFromJsonAsync<Game>().Result;
+			questionList = myGame.Questions.ToList();
+			gameName = myGame.GameName;
+			answerList.Add(new GetAnswerClass());
+			answerList.Add(new GetAnswerClass());
+			myFileImageList.Add("");
+			myFileImageList.Add("");
+			Criteria();
+			singleQuestion.content = "";
+		}
+		else
+		{
+			string error = userRes.Content.ReadAsStringAsync().Result;
+			switch (error)
+			{
+				case "No Session":
+					msg = "Session error, please reload page";
+					break;
+				case "User Not Logged In":
+					msg = "You are not logged in, please reload page to try again";
+					break;
+				case "User Not Found":
+					msg = "the user details not found, please reload page to try again";
+					break;
+			}
+
+		}
+
+	}//עובד
+
+
+	void AddAnswer()
+	{//עובד
+		answerList.Add(new GetAnswerClass());
+		myFileImageList.Add("");
+		Valid();
+	}
+
+	void RemoveAnswer(int index)//עובד
+	{
+		if (myFileImageList[index] != "")
+		{
+			DeletedImages.Add(myFileImageList[index]);
+		}
+
+		answerList.RemoveAt(index);
+		myFileImageList.RemoveAt(index);
+		BTNDisable = true;
+
+	}
+
+	void Valid()
+	{
+		questionContent = singleQuestion.content;
+
+		for (int i = 0; i < answerList.Count; i++)
+		{
+			if (answerList[i].content != null)
+			{
+				counters[i] = answerList[i].content;// we give the counter list the content of the answer.
+
+			}
+		}
+
+
+		// check the question text.
+		if (singleQuestion.content != null && singleQuestion.content.Length > 0 && singleQuestion.content.Length < 31)
+		{
+
+			for (int i = 0; i < answerList.Count; i++)
+			{
+				//check if it text or image.
+				if (answerList[i].content != null && answerList[i].content != "")
+				{
+					//check between 2-15 chars.
+					if (answerList[i].content.Length > 1 && answerList[i].content.Length < 16)
+					{
+						BTNDisable = false;
+					}
+				}
+				else
+				{
+					// cheack if we really have image.
+					if (myFileImageList[i] != null && myFileImageList[i] != "")
+					{
+						BTNDisable = false;
+					}
+					else
+					{
+						BTNDisable = true;
+					}
+				}
+
+			}
+		}
+		else
+		{
+			BTNDisable = true;
+		}
+		countChars();
+		Criteria();
+	}
+
+	async Task AddQuestion()
+	{
+		//add the answers(img or text) to the question answer list.
+		for (int i = 0; i < answerList.Count; i++)
+		{
+			//if the img list in position i is not empty.
+			if (myFileImageList[i] != "")
+			{
+				// put the img path(it's a string) in the answerlist.
+				answerList[i].content = myFileImageList[i];
+				answerList[i].imag_or_text = true;
+			}
+		}
+
+		answerList[0].is_correct = true;
+		singleQuestion.answers = answerList.ToList();
+		singleQuestion.game_id = myGame.ID;
+
+
+
+		if (editState == true)
+		{
+			var deletQuestion = await Http.DeleteAsync("api/Games/" + UserId + "/deleteQ/" + singleQuestion.id);
+			if (deletQuestion.IsSuccessStatusCode == true)
+			{
+				questionList.Remove(singleQuestion);
+
+				var userRes = await Http.PostAsJsonAsync("api/Games/" + UserId + "/AddQuestion", singleQuestion);
+				if (userRes.IsSuccessStatusCode == true)
+				{
+					Console.WriteLine("insertQ");
+
+					GetQuestionClass qToAdd = userRes.Content.ReadFromJsonAsync<GetQuestionClass>().Result;
+
+					questionList.Add(qToAdd);
+					singleQuestion = new GetQuestionClass();
+					answerList.Clear();
+					answerList.Add(new GetAnswerClass());
+					answerList.Add(new GetAnswerClass());
+					myFileImageList.Clear();
+					myFileImageList.Add("");
+					myFileImageList.Add("");
+					questionContent = "";
+					singleQuestion.content = "";
+
+				}
+				else
+				{
+					string error = userRes.Content.ReadAsStringAsync().Result;
+					switch (error)
+					{
+						case "No Session":
+							msg = "Session error, please reload page";
+							break;
+						case "User Not Logged In":
+							msg = "You are not logged in, please reload page to try again";
+							break;
+						case "User Not Found":
+							msg = "the user details not found, please reload page to try again";
+							break;
+					}
+
+				}
+
+			}
+
+			editState = false;
+			Valid();
+
+		}
+		else
+		{
+
+			var userRes = await Http.PostAsJsonAsync("api/Games/" + UserId + "/AddQuestion", singleQuestion);
+
+			if (userRes.IsSuccessStatusCode == true)
+			{
+				Console.WriteLine("insertQ");
+
+				GetQuestionClass qToAdd = userRes.Content.ReadFromJsonAsync<GetQuestionClass>().Result;
+
+				questionList.Add(qToAdd);
+				singleQuestion = new GetQuestionClass();
+				answerList.Clear();
+				answerList.Add(new GetAnswerClass());
+				answerList.Add(new GetAnswerClass());
+				myFileImageList.Clear();
+				myFileImageList.Add("");
+				myFileImageList.Add("");
+				questionContent = "";
+				singleQuestion.content = "";
+
+			}
+			else
+			{
+				string error = userRes.Content.ReadAsStringAsync().Result;
+				switch (error)
+				{
+					case "No Session":
+						msg = "Session error, please reload page";
+						break;
+					case "User Not Logged In":
+						msg = "You are not logged in, please reload page to try again";
+						break;
+					case "User Not Found":
+						msg = "the user details not found, please reload page to try again";
+						break;
+				}
+
+			}
+
+		}
+		var saveResponse = await Http.PostAsJsonAsync("api/Media/deleteImages", DeletedImages);
+		if (saveResponse.IsSuccessStatusCode == true)
+		{
+			Console.WriteLine("נמחק!");
+		}
+		else
+		{
+			Console.WriteLine("ואלאק לא!");
+		}
+		for (int i = 0; i < answerList.Count; i++)
+		{
+			Reset(i);
+		}
+		questionContent = "";
+		singleQuestion.content = "";
+		Valid();
+	}
+
+
+	void EditQuestion(GetQuestionClass Question)
+	{
+		singleQuestion = Question;
+		answerList.Clear();
+		myFileImageList.Clear();
+
+		foreach (var answer in Question.answers)
+		{
+			Console.WriteLine(answer.content);
+
+			if (answer.content.StartsWith("uploadedFiles/"))
+			{
+				myFileImageList.Add(answer.content);
+			}
+			else
+			{
+				myFileImageList.Add("");
+			}
+
+			answerList.Add(answer);
+		}
+
+		editState = true;
+		Valid();
+	}
+
+
+	void Reset(int index)
+	{
+		//if we have image.
+		if (myFileImageList[index] != "")
+		{
+			DeletedImages.Add(myFileImageList[index]);
+		}
+
+		answerList[index].content = "";
+		answerList[index].imag_or_text = false;
+		myFileImageList[index] = "";
+		Valid();
+	}
+
+	//async Task deleteQuestion(GetQuestionClass Question)
+	//{
+
+	//	var deletQuestion = await Http.DeleteAsync("api/Games/" + UserId + "/deleteQ/" + Question.id);
+	//	if (deletQuestion.IsSuccessStatusCode == true)
+	//	{
+	//		questionList.Remove(Question);
+	//	}
+
+	//	Valid();
+	//}
+
+	void countChars()
+	{
+		// for game name.
+		int length = gameName.Length;
+		switch (length)
+		{
+			case > 1 and <= 10:
+				inputClass = "good-input";
+				BtnSaveGameDisable = false;
+				break;
+			case > 10 and <= 19:
+				inputClass = "warnning-input";
+				BtnSaveGameDisable = false;
+				break;
+			case >= 20:
+				inputClass = "danger-input";
+				BtnSaveGameDisable = false;
+				break;
+			default:
+				inputClass = "danger-input";
+				BtnSaveGameDisable = true;
+				break;
+		}
+
+		if (questionContent != null)
+		{
+			int Qlength = questionContent.Length;
+			switch (Qlength)
+			{
+				case > 1 and <= 10:
+					QinputClass = "good-input";
+					break;
+				case > 10 and <= 19:
+					QinputClass = "warnning-input";
+					break;
+				case >= 20:
+					QinputClass = "danger-input";
+					break;
+				default:
+					QinputClass = "danger-input";
+					break;
+			}
+
+		}
+		// for question content.
+
+		// for question answers.
+		for (int i = 0; i < answerList.Count; i++)
+		{
+			if (answerList[i].content != null)
+			{
+				int anslength = answerList[i].content.Length;
+				switch (anslength)
+				{
+					case > 1 and <= 10:
+						countersClass[i] = "good-input";
+						break;
+					case > 10 and <= 19:
+						countersClass[i] = "warnning-input";
+						break;
+					case >= 20:
+						countersClass[i] = "danger-input";
+						break;
+					default:
+						countersClass[i] = "danger-input";
+						break;
+				}
+			}
+
+		}
+	}
+
+	void SetTimer(int num)
+	{
+		Console.WriteLine("funcTime");
+		myGame.TimeToAnswer = num;
+		if (myGame.TimeToAnswer == num)
+		{
+			Console.WriteLine("sucses");
+
+		}
+	}
+
+
+	void Criteria()
+	{
+		if (questionList.Count >= 10)
+		{
+			circleColor1 = "green";
+			circleContent1 = "v";
+
+		}
+		else
+		{
+			circleColor1 = "red";
+		}
+
+		if (questionList.Count % 2 == 0)
+		{
+			circleColor2 = "green";
+			circleContent2 = "v";
+
+		}
+		else
+		{
+			circleColor2 = "red";
+
+		}
+	}
+
+
+	async Task SaveGame()
+	{
+		showSavePopup1 = true;
+		myGame.GameName = gameName;
+		var userRes = await Http.PostAsJsonAsync("api/Games/" + UserId + "/updateGame", myGame);
+		if (userRes.IsSuccessStatusCode == true)
+		{
+
+			Console.WriteLine("good");
+
+		}
+		else
+		{
+			Console.WriteLine("not good");
+		}
+
+
+	}
+
+
+	//void Navigate2()
+	//{
+	//	Nav.NavigateTo("./NewGames");
+	//}
+
+
+	private async Task UploadFile(InputFileChangeEventArgs e, int index)
+	{
+		var imageFiles = e.GetMultipleFiles();
+		foreach (var file in imageFiles)
+		{
+			if (file.Size <= maxFileSize)
+			{
+				var buffer = new byte[file.Size];
+				await file.OpenReadStream(maxFileSize).ReadAsync(buffer);
+				var imageBase64 = Convert.ToBase64String(buffer);
+				var saveResponse = await Http.PostAsJsonAsync("api/Media/upload", imageBase64);
+
+				if (saveResponse.IsSuccessStatusCode == true)
+				{
+					string resizeUrl = saveResponse.Content.ReadAsStringAsync().Result;
+
+					for (int i = 0; i < myFileImageList.Count; i++)
+					{
+						if (i == index)
+						{
+							myFileImageList[i] = "uploadedFiles/" + resizeUrl;
+							answerList[i].content = "uploadedFiles/" + resizeUrl;
+							answerList[i].imag_or_text = true;
+							break;
+						}
+					}
+				}
+			}
+		}
+		Valid();
+	}
+
+	// show the delete question pop up.
+	void ShowPopup(GetQuestionClass QtoDelete)
+	{
+		showMyPopup = true;
+		questionToDelete = QtoDelete;
+	}
+
+
+	// delete the question.
+	async Task deleteQuestion(bool deleteOrNo)
+	{
+		if (deleteOrNo == true)
+		{
+			var deletQuestion = await Http.DeleteAsync("api/Games/" + UserId + "/deleteQ/" + questionToDelete.id);
+			if (deletQuestion.IsSuccessStatusCode == true)
+			{
+				questionList.Remove(questionToDelete);
+			}
+
+		}
+
+		Valid();
+		showMyPopup = false;
+	}
+
+
+	void BeckPopup()
+	{
+		showBeckPopup = true;
+	}
+
+
+
+	void Navigate2(bool navOrNo)
+	{
+		if(navOrNo == true)
+		{
+			Nav.NavigateTo("./NewGames");
+		}
+		showBeckPopup = false;
+		showSavePopup1 = false;
+	}
+
+	
+
+
+
+}
